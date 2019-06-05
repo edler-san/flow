@@ -196,7 +196,7 @@ public class DevModeInitializer
         context.setAttribute(VisitedClasses.class.getName(),
                 new VisitedClasses(visitedClassNames));
 
-        DevModeHandler handler = DevModeHandler.start(config,
+        DevModeHandler handler = DevModeHandler.start(context, config,
                 builder.npmFolder);
         context.addListener(new StopDevMode(() -> handler.stop()));
     }

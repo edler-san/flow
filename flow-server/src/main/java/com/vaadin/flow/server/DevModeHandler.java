@@ -15,6 +15,7 @@
  */
 package com.vaadin.flow.server;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -109,8 +110,9 @@ public class DevModeHandler implements Serializable {
         stopProcess = null;
     }
 
-    private DevModeHandler(DeploymentConfiguration config, int runningPort,
-            File npmFolder, File webpack, File webpackConfig) {
+    private DevModeHandler(ServletContext context,
+            DeploymentConfiguration config, int runningPort, File npmFolder,
+            File webpack, File webpackConfig) {
 
         port = runningPort;
         // If port is defined, means that webpack is already running
@@ -188,7 +190,7 @@ public class DevModeHandler implements Serializable {
 
         stopProcess = stopCallback;
 
-        System.setProperty(
+        context.setAttribute(
                 VAADIN_PREFIX + SERVLET_PARAMETER_DEVMODE_WEBPACK_RUNNING_PORT,
                 String.valueOf(port));
     }
@@ -196,6 +198,8 @@ public class DevModeHandler implements Serializable {
     /**
      * Start the dev mode handler if none has been started yet.
      *
+     *
+     * @param context
      * @param configuration
      *            deployment configuration
      * @param npmFolder
@@ -203,10 +207,10 @@ public class DevModeHandler implements Serializable {
      *
      * @return the instance in case everything is alright, null otherwise
      */
-    public static DevModeHandler start(DeploymentConfiguration configuration,
-            File npmFolder) {
-        atomicHandler.compareAndSet(null,
-                DevModeHandler.createInstance(configuration, npmFolder));
+    public static DevModeHandler start(ServletContext context,
+            DeploymentConfiguration configuration, File npmFolder) {
+        atomicHandler.compareAndSet(null, DevModeHandler.createInstance(context,
+                configuration, npmFolder));
         return getDevModeHandler();
     }
 
@@ -228,16 +232,18 @@ public class DevModeHandler implements Serializable {
         return atomicHandler.get();
     }
 
-    private static DevModeHandler createInstance(
+    private static DevModeHandler createInstance(ServletContext context,
             DeploymentConfiguration configuration, File npmFolder) {
         if (configuration.isProductionMode() || configuration.isBowerMode()) {
             return null;
         }
 
+        System.out.println("ServletContext: " + context);
         File webpack = null;
         File webpackConfig = null;
-        int runningPort = Integer.parseInt(configuration.getStringProperty(
-                SERVLET_PARAMETER_DEVMODE_WEBPACK_RUNNING_PORT, "0"));
+        String attribute =
+                (String) context.getAttribute(SERVLET_PARAMETER_DEVMODE_WEBPACK_RUNNING_PORT);
+        int runningPort = attribute == null ? 0 : Integer.parseInt(attribute);
 
         // Skip checks if we have a webpack-dev-server already running
         if (runningPort == 0) {
@@ -267,8 +273,8 @@ public class DevModeHandler implements Serializable {
                 return null;
             }
         }
-        return new DevModeHandler(configuration, runningPort, npmFolder,
-                webpack, webpackConfig);
+        return new DevModeHandler(context, configuration, runningPort,
+                npmFolder, webpack, webpackConfig);
     }
 
     /**

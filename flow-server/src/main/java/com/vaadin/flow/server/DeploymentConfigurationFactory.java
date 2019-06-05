@@ -175,15 +175,15 @@ public final class DeploymentConfigurationFactory implements Serializable {
                             buildInfo.getBoolean(SERVLET_PARAMETER_BOWER_MODE)));
                     // Need to be sure that we remove the system property, because
                     // it has priority in the configuration getter
-                    System.clearProperty("vaadin." + SERVLET_PARAMETER_BOWER_MODE);
+                    System.clearProperty(VAADIN_PREFIX + SERVLET_PARAMETER_BOWER_MODE);
                 }
                 if (buildInfo.hasKey("webpackPort")) {
-                    System.setProperty(VAADIN_PREFIX  + SERVLET_PARAMETER_DEVMODE_WEBPACK_RUNNING_PORT,
+                    context.setAttribute(VAADIN_PREFIX + SERVLET_PARAMETER_DEVMODE_WEBPACK_RUNNING_PORT,
                             String.valueOf((int)buildInfo.getNumber("webpackPort")));
                 }
-                if (System.getProperty(PROJECT_BASEDIR) == null && buildInfo.hasKey("npmFolder")) {
-                    System.setProperty(PROJECT_BASEDIR, buildInfo.getString("npmFolder"));
-                }
+//                if (System.getProperty(PROJECT_BASEDIR) == null && buildInfo.hasKey("npmFolder")) {
+//                    System.setProperty(PROJECT_BASEDIR, buildInfo.getString("npmFolder"));
+//                }
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
