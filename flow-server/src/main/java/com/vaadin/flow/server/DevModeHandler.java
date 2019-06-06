@@ -190,9 +190,7 @@ public class DevModeHandler implements Serializable {
 
         stopProcess = stopCallback;
 
-        context.setAttribute(
-                VAADIN_PREFIX + SERVLET_PARAMETER_DEVMODE_WEBPACK_RUNNING_PORT,
-                String.valueOf(port));
+        setRunningPort(context, port);
     }
 
     /**
@@ -241,9 +239,7 @@ public class DevModeHandler implements Serializable {
         System.out.println("ServletContext: " + context);
         File webpack = null;
         File webpackConfig = null;
-        String attribute =
-                (String) context.getAttribute(SERVLET_PARAMETER_DEVMODE_WEBPACK_RUNNING_PORT);
-        int runningPort = attribute == null ? 0 : Integer.parseInt(attribute);
+        int runningPort = getRunningPort(context);
 
         // Skip checks if we have a webpack-dev-server already running
         if (runningPort == 0) {
@@ -483,4 +479,33 @@ public class DevModeHandler implements Serializable {
                     "Unable to find a free port for running webpack", e);
         }
     }
+
+    /**
+     * Returns the webpack running port as it's stored by the
+     * <code>context</code> argument.
+     * 
+     * @param context
+     *            the context where the port is stored.
+     * @return the webpack port or 0 if the port is not stored.
+     */
+    static int getRunningPort(ServletContext context) {
+        String attribute = (String) context
+                .getAttribute(SERVLET_PARAMETER_DEVMODE_WEBPACK_RUNNING_PORT);
+        int runningPort = attribute == null ? 0 : Integer.parseInt(attribute);
+        return runningPort;
+    }
+
+    /**
+     * Sets the webpack running port into the context.
+     * 
+     * @param context
+     *            the context where the port is stored.
+     * @param port
+     *            the webpack running port.
+     */
+    static void setRunningPort(ServletContext context, int port) {
+        context.setAttribute(SERVLET_PARAMETER_DEVMODE_WEBPACK_RUNNING_PORT,
+                String.valueOf(port));
+    }
+
 }

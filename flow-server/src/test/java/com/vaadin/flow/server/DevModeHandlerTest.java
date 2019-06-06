@@ -31,6 +31,8 @@ import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.sun.net.httpserver.HttpServer;
+import com.vaadin.flow.server.frontend.FrontendUtils;
+import com.vaadin.tests.util.MockDeploymentConfiguration;
 import net.jcip.annotations.NotThreadSafe;
 import org.junit.After;
 import org.junit.Before;
@@ -41,12 +43,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
-import com.vaadin.flow.server.frontend.FrontendUtils;
-import com.vaadin.tests.util.MockDeploymentConfiguration;
-
-import static com.vaadin.flow.server.Constants.SERVLET_PARAMETER_DEVMODE_WEBPACK_RUNNING_PORT;
 import static com.vaadin.flow.server.Constants.SERVLET_PARAMETER_DEVMODE_WEBPACK_TIMEOUT;
-import static com.vaadin.flow.server.Constants.VAADIN_PREFIX;
 import static com.vaadin.flow.server.DevModeHandler.WEBPACK_SERVER;
 import static com.vaadin.flow.server.frontend.FrontendUtils.getBaseDir;
 import static com.vaadin.flow.server.frontend.NodeUpdateTestUtil.WEBPACK_TEST_OUT_FILE;
@@ -60,7 +57,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @NotThreadSafe
 @SuppressWarnings("restriction")
@@ -89,8 +85,6 @@ public class DevModeHandlerTest {
 
         new File(getBaseDir(), FrontendUtils.WEBPACK_CONFIG).createNewFile();
         createStubWebpackServer("Compiled", 100);
-        System.clearProperty(
-                "vaadin." + SERVLET_PARAMETER_DEVMODE_WEBPACK_RUNNING_PORT);
     }
 
     @After
@@ -134,9 +128,7 @@ public class DevModeHandlerTest {
                 SERVLET_PARAMETER_DEVMODE_WEBPACK_TIMEOUT, "100");
         createStubWebpackServer("Foo", 300);
         assertNotNull(DevModeHandler.start(servletContext, configuration, npmFolder));
-        assertTrue(Integer.getInteger(
-                "vaadin." + SERVLET_PARAMETER_DEVMODE_WEBPACK_RUNNING_PORT,
-                0) > 0);
+        assertTrue(DevModeHandler.getRunningPort(servletContext) > 0);
         Thread.sleep(350); // NOSONAR
     }
 
@@ -340,9 +332,7 @@ public class DevModeHandlerTest {
             exchange.close();
         });
         httpServer.start();
-        configuration.setApplicationOrSystemProperty(
-                SERVLET_PARAMETER_DEVMODE_WEBPACK_RUNNING_PORT,
-                String.valueOf(port));
+        DevModeHandler.setRunningPort(servletContext, port);
         return port;
     }
 }

@@ -177,13 +177,9 @@ public final class DeploymentConfigurationFactory implements Serializable {
                     // it has priority in the configuration getter
                     System.clearProperty(VAADIN_PREFIX + SERVLET_PARAMETER_BOWER_MODE);
                 }
-                if (buildInfo.hasKey("webpackPort")) {
-                    context.setAttribute(VAADIN_PREFIX + SERVLET_PARAMETER_DEVMODE_WEBPACK_RUNNING_PORT,
-                            String.valueOf((int)buildInfo.getNumber("webpackPort")));
+                if (System.getProperty(PROJECT_BASEDIR) == null && buildInfo.hasKey("npmFolder")) {
+                    System.setProperty(PROJECT_BASEDIR, buildInfo.getString("npmFolder"));
                 }
-//                if (System.getProperty(PROJECT_BASEDIR) == null && buildInfo.hasKey("npmFolder")) {
-//                    System.setProperty(PROJECT_BASEDIR, buildInfo.getString("npmFolder"));
-//                }
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
