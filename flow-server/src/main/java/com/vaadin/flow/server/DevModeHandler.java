@@ -110,7 +110,7 @@ public class DevModeHandler implements Serializable {
         stopProcess = null;
     }
 
-    private DevModeHandler(ServletContext context,
+    private DevModeHandler(VaadinContext context,
             DeploymentConfiguration config, int runningPort, File npmFolder,
             File webpack, File webpackConfig) {
 
@@ -196,8 +196,9 @@ public class DevModeHandler implements Serializable {
     /**
      * Start the dev mode handler if none has been started yet.
      *
-     *
      * @param context
+     *            <code>VaadinContext</code> where to store the
+     *            <code>DevModePort</code> on which Webpack is listening.
      * @param configuration
      *            deployment configuration
      * @param npmFolder
@@ -205,7 +206,7 @@ public class DevModeHandler implements Serializable {
      *
      * @return the instance in case everything is alright, null otherwise
      */
-    public static DevModeHandler start(ServletContext context,
+    public static DevModeHandler start(VaadinContext context,
             DeploymentConfiguration configuration, File npmFolder) {
         atomicHandler.compareAndSet(null, DevModeHandler.createInstance(context,
                 configuration, npmFolder));
@@ -230,7 +231,7 @@ public class DevModeHandler implements Serializable {
         return atomicHandler.get();
     }
 
-    private static DevModeHandler createInstance(ServletContext context,
+    private static DevModeHandler createInstance(VaadinContext context,
             DeploymentConfiguration configuration, File npmFolder) {
         if (configuration.isProductionMode() || configuration.isBowerMode()) {
             return null;
@@ -488,10 +489,9 @@ public class DevModeHandler implements Serializable {
      *            the context where the port is stored.
      * @return the webpack port or 0 if the port is not stored.
      */
-    static int getRunningPort(ServletContext context) {
-        String attribute = (String) context
-                .getAttribute(SERVLET_PARAMETER_DEVMODE_WEBPACK_RUNNING_PORT);
-        int runningPort = attribute == null ? 0 : Integer.parseInt(attribute);
+    static int getRunningPort(VaadinContext context) {
+        DevModePort attribute = context.getAttribute(DevModePort.class);
+        int runningPort = attribute == null ? 0 : attribute.getValue();
         return runningPort;
     }
 
@@ -503,9 +503,55 @@ public class DevModeHandler implements Serializable {
      * @param port
      *            the webpack running port.
      */
-    static void setRunningPort(ServletContext context, int port) {
-        context.setAttribute(SERVLET_PARAMETER_DEVMODE_WEBPACK_RUNNING_PORT,
-                String.valueOf(port));
+    static void setRunningPort(VaadinContext context, int port) {
+        context.setAttribute(new DevModePort(port));
+    }
+
+    /**
+     * Webpack dev mode port wrapper.
+     */
+    public static class DevModePort {
+
+        private final int value;
+
+        /**
+         * Creates the dev mode port.
+         * 
+         * @param value
+         *            the value of the port.
+         */
+        public DevModePort(int value) {
+            this.value = value;
+        }
+
+        /**
+         * Gets the value of the port.
+         * 
+         * @return the value of the port.
+         */
+        public int getValue() {
+            return value;
+        }
+
+        @Override
+        public String toString() {
+            return "" + value;
+        }
+
+        @Override
+        public int hashCode() {
+            return value;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof DevModePort) {
+                DevModePort devModePort = (DevModePort) obj;
+                return devModePort.value == this.value;
+            }
+
+            return false;
+        }
     }
 
 }

@@ -31,6 +31,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.vaadin.flow.server.VaadinContext;
+import com.vaadin.flow.server.VaadinServletContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -193,10 +195,11 @@ public class DevModeInitializer
                 .runNpmInstall(true).withEmbeddableWebComponents(true)
                 .collectVisitedClasses(visitedClassNames).build().execute();
 
-        context.setAttribute(VisitedClasses.class.getName(),
-                new VisitedClasses(visitedClassNames));
+        VaadinContext vaadinContext = new VaadinServletContext(context);
 
-        DevModeHandler handler = DevModeHandler.start(context, config,
+        vaadinContext.setAttribute(new VisitedClasses(visitedClassNames));
+
+        DevModeHandler handler = DevModeHandler.start(vaadinContext, config,
                 builder.npmFolder);
         context.addListener(new StopDevMode(() -> handler.stop()));
     }
